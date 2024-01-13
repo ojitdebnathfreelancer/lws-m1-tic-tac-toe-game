@@ -1,52 +1,51 @@
 import { useState } from "react";
-import Square from "./components/Square";
-import { calculateWinner } from "./utils/calculateWinner";
+import Board from "./components/Board";
 
-function Board() {
-  const [squares, setSquares] = useState(Array(9).fill(null));
+const Game = () => {
+  const [history, setHistory] = useState([Array(9).fill(null)]);
   const [xIsNext, setXIsNext] = useState(true);
+  const [currentMove, setCurrentMove] = useState(0);
 
-  const winner = calculateWinner(squares);
-  let status;
-  if (winner) {
-    status = `Winner is: ${winner}`;
-  } else {
-    status = `Next player is: ${xIsNext ? "X" : "O"}`;
-  }
-
-  function onSquareClick(i) {
-    if (squares[i] || calculateWinner(squares)) return;
-    const nextSquares = squares.slice();
-    if (xIsNext) {
-      nextSquares[i] = "X";
-    } else {
-      nextSquares[i] = "O";
-    }
-    setSquares(nextSquares);
+  const currentSquares = history[currentMove];
+  function handlePlay(nextSquares) {
     setXIsNext(!xIsNext);
+    const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
+    setHistory(nextHistory);
+    setCurrentMove(nextHistory.length - 1);
   }
+
+  function jumpTo(move) {
+    setCurrentMove(move);
+    setXIsNext(move % 2 === 0);
+  }
+
+  const moves = history.map((squares, move) => {
+    let description;
+    if (move > 0) {
+      description = `Go to the move # ${move}`;
+    } else {
+      description = "Go to start the game";
+    }
+
+    return (
+      <li key={move}>
+        <button onClick={() => jumpTo(move)} type="button">
+          {description}
+        </button>
+      </li>
+    );
+  });
+
   return (
-    <>
-      <h2>{status}</h2>
-      <div className="flex">
-        <Square value={squares[0]} onSquareClick={() => onSquareClick(0)} />
-        <Square value={squares[1]} onSquareClick={() => onSquareClick(1)} />
-        <Square value={squares[2]} onSquareClick={() => onSquareClick(2)} />
+    <div className="flex justify-center gap-2">
+      <div>
+        <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
       </div>
-
-      <div className="flex">
-        <Square value={squares[3]} onSquareClick={() => onSquareClick(3)} />
-        <Square value={squares[4]} onSquareClick={() => onSquareClick(4)} />
-        <Square value={squares[5]} onSquareClick={() => onSquareClick(5)} />
+      <div>
+        <ol>{moves}</ol>
       </div>
-
-      <div className="flex">
-        <Square value={squares[6]} onSquareClick={() => onSquareClick(6)} />
-        <Square value={squares[7]} onSquareClick={() => onSquareClick(7)} />
-        <Square value={squares[8]} onSquareClick={() => onSquareClick(8)} />
-      </div>
-    </>
+    </div>
   );
-}
+};
 
-export default Board;
+export default Game;
